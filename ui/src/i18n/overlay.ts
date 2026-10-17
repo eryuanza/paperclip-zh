@@ -94,7 +94,12 @@ function translateTextNode(node: Text): void {
   if (hit == null) return;
   const lead = raw.match(/^\s*/)?.[0] ?? "";
   const trail = raw.match(/\s*$/)?.[0] ?? "";
-  node.nodeValue = lead + hit + trail;
+  const translated = lead + hit + trail;
+  // Writing the same value still emits a characterData mutation. Identity
+  // entries such as "OpenAI" -> "OpenAI" would therefore make the observer
+  // below translate and rewrite the node forever, blocking the browser thread.
+  if (translated === raw) return;
+  node.nodeValue = translated;
 }
 
 function translateAttributes(element: Element): void {

@@ -66,13 +66,32 @@ globalScope.__pcSetTranslations = setTranslations;
 
 const TEXT_ATTRS = ["placeholder", "title", "aria-label", "alt"] as const;
 
+const RELATIVE_UNITS: Record<string, string> = {
+  s: "秒",
+  m: "分钟",
+  h: "小时",
+  d: "天",
+  w: "周",
+  mo: "个月",
+  y: "年",
+};
+
+/** `3h ago` -> `3 小时前`，`just now` -> `刚刚`。 */
+function translateRelativeTime(text: string): string | null {
+  if (/^just now$/i.test(text)) return "刚刚";
+  const match = text.match(/^(\d+)\s*(s|m|h|d|w|mo|y)\s+ago$/i);
+  if (!match) return null;
+  const unit = RELATIVE_UNITS[match[2].toLowerCase()];
+  return unit ? `${match[1]} ${unit}前` : null;
+}
+
 function translateTextNode(node: Text): void {
   const raw = node.nodeValue;
   if (!raw || !/[A-Za-z]/.test(raw)) return;
   const trimmed = raw.trim();
   if (!trimmed) return;
-  const hit = dictionary[trimmed];
-  if (hit === undefined) return;
+  const hit = dictionary[trimmed] ?? translateRelativeTime(trimmed);
+  if (hit == null) return;
   const lead = raw.match(/^\s*/)?.[0] ?? "";
   const trail = raw.match(/\s*$/)?.[0] ?? "";
   node.nodeValue = lead + hit + trail;

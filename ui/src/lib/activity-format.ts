@@ -1,4 +1,5 @@
 import type { Agent } from "@paperclipai/shared";
+import { translate } from "@/i18n/overlay";
 import type { CompanyUserProfile } from "./company-members";
 import { formatReviewPolicyValue } from "./review-policy";
 
@@ -480,7 +481,7 @@ export function formatActivityVerb(
   });
   if (structuredChange) return structuredChange;
 
-  return ACTIVITY_ROW_VERBS[action] ?? action.replace(/[._]/g, " ");
+  return translateActivityPhrase(ACTIVITY_ROW_VERBS[action] ?? action.replace(/[._]/g, " "));
 }
 
 export function formatIssueActivityAction(
@@ -539,4 +540,18 @@ export function formatIssueActivityAction(
   }
 
   return ISSUE_ACTIVITY_LABELS[action] ?? action.replace(/[._]/g, " ");
+}
+/**
+ * Activity verbs come either from the curated map above or from an action id
+ * such as `user_secret_value.created`. Translate the whole phrase when the
+ * catalog has it; otherwise translate the individual words and concatenate
+ * them (Chinese does not use spaces between words).
+ */
+function translateActivityPhrase(phrase: string): string {
+  const direct = translate(phrase);
+  if (direct !== phrase) return direct;
+  return phrase
+    .split(" ")
+    .map((word) => translate(word))
+    .join("");
 }

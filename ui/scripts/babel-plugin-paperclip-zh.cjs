@@ -84,6 +84,23 @@ function templateShape(node) {
   return shape;
 }
 
+function jsxAttributeForExpression(path) {
+  const parent = path.parentPath;
+  if (!parent) return null;
+  if (parent.isJSXAttribute()) return parent;
+  if (parent.isJSXExpressionContainer() && parent.parentPath?.isJSXAttribute()) {
+    return parent.parentPath;
+  }
+  return null;
+}
+
+function isTranslatableAttribute(path, attrs, t) {
+  const attribute = jsxAttributeForExpression(path);
+  if (!attribute) return true;
+  const name = attribute.node.name;
+  return Boolean(t.isJSXIdentifier(name) && attrs.has(name.name));
+}
+
 module.exports = function paperclipZhOverlay(api, options = {}) {
   const t = api.types;
   const attrs = new Set(options.attributes || DEFAULT_ATTRS);
@@ -137,6 +154,11 @@ module.exports = function paperclipZhOverlay(api, options = {}) {
       TemplateLiteral(path, state) {
         if (!isTarget(state.file.opts.filename)) return;
 
+        // Expressions used as component props often contain protocol values,
+        // animation modes, paths, or IDs. Translate only attributes explicitly
+        // identified as user-facing copy; child expressions remain visible text.
+        if (!isTranslatableAttribute(path, attrs, t)) return;
+
         const parent = path.parentPath;
         const inJsx =
           parent &&
@@ -158,6 +180,13 @@ module.exports = function paperclipZhOverlay(api, options = {}) {
 
       JSXExpressionContainer(path, state) {
         if (!isTarget(state.file.opts.filename)) return;
+
+        // A JSX expression is not necessarily visible text. For example,
+        // `mode={ready ? "wait" : "sync"}` and
+        // `pose={awake ? "rest" : "sleepy"}` are component protocols. Passing
+        // their translated values breaks the receiving component. Attribute
+        // expressions are translated only when their attribute is allowlisted.
+        if (!isTranslatableAttribute(path, attrs, t)) return;
 
         const expr = path.node.expression;
         if (t.isJSXEmptyExpression(expr)) return;

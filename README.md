@@ -1,3 +1,14 @@
+> **简体中文版（非官方 Fork）**
+>
+> 本仓库汉化了 Paperclip 的 Web 界面。翻译集中在一个 JSON 词典里，
+> 不需要修改组件代码即可维护。详见 [FORK.md](./FORK.md)。
+>
+> 上游项目：[paperclipai/paperclip](https://github.com/paperclipai/paperclip)（MIT）。
+> 本 Fork 与 Paperclip AI 无隶属或背书关系，署名见 [NOTICE](./NOTICE)。
+>
+> **本 Fork 的汉化改造完全由 AI 编程代理生成**，译文为机器翻译、未经人工逐条审校。
+> Agent 维护流程见 [I18N-AGENT-GUIDE.md](./I18N-AGENT-GUIDE.md)。
+
 <p align="center">
   <img src="doc/assets/banner.jpg" alt="Paperclip is the app people use to manage AI agents for work." width="720" />
 </p>

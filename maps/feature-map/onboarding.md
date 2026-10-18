@@ -17,6 +17,7 @@ Agent access: [companion](../agent-access-map/onboarding.md).
 - `adapter`: choose an available harness, model, account, and execution environment.
 - `first-task`: leave setup with a task whose execution or missing prerequisite is visible.
 - `resume`: return to an incomplete wizard without losing saved state.
+- `skip`: leave the wizard without configuring provider credentials or creating an agent.
 
 ## How to get to it (user POV)
 
@@ -26,6 +27,9 @@ Open `/onboarding` or the onboarding launcher in an empty company context.
 Use `/<company-prefix>/onboarding` to resume an existing company's agent setup;
 the unprefixed route starts at organization naming on self-hosted instances.
 Cloud-managed instances reuse their existing company for agent setup.
+Every wizard step also offers Skip. Skipping clears the local onboarding draft
+and returns to the application without requiring a provider login; organizations
+already created earlier in the flow remain available.
 
 ### `cli-setup`
 

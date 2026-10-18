@@ -782,6 +782,10 @@ function OnboardingWizardInner({
   const initialStepRef = useRef<Step | undefined>(undefined);
   initialStepRef.current = effectiveOnboardingOptions.initialStep;
   const openingRequestRef = useRef<{ open: boolean; companyId: string | null; hasOpened: boolean } | null>(null);
+  // `reset()` changes every persisted field before the surrounding dialog
+  // context can publish its closed state. Without this fence, the persistence
+  // effect can recreate an empty draft in that intervening render.
+  const closingOnboardingRef = useRef(false);
 
   // Reset the route-dismissed flag when navigating to a different path.
   useEffect(() => {
@@ -827,6 +831,7 @@ function OnboardingWizardInner({
       hasOpened: previousRequest?.hasOpened === true || effectiveOnboardingOpen };
     if (!effectiveOnboardingOpen) return;
     if (previousRequest?.open && previousRequest.companyId === routeCompanyId) return;
+    closingOnboardingRef.current = false;
     const initialRequest = previousRequest?.hasOpened !== true;
     const resumesRouteDraft = initialRequest && !onboardingOpen && saved !== null
       && typeof saved.step === "number" && saved.step >= 1 && saved.step <= 5
@@ -912,7 +917,7 @@ function OnboardingWizardInner({
 
   // Persist wizard state to localStorage on every change
   useEffect(() => {
-    if (!effectiveOnboardingOpen) return;
+    if (!effectiveOnboardingOpen || closingOnboardingRef.current) return;
     const state = {
       step, companyName,
       agentName, agentAppearance, agentRole, adapterType, runner, cwd, model, command, args, url,
@@ -1636,6 +1641,7 @@ function OnboardingWizardInner({
   }, [filteredModels, adapterType]);
 
   function reset() {
+    closingOnboardingRef.current = true;
     onboardingDraftStorage.clear();
     // Back to the first step — "Name your organization". There is no front
     // door before it anymore, so a fresh run opens here.
@@ -3148,6 +3154,7 @@ function OnboardingWizardInner({
                   `canGoBackFromOnboardingStep` returns false for it. */}
               {(isAgentArcStep || step === 1) && (
                 <FooterNav
+                  onSkip={handleClose}
                   onBack={
                     // On the connect step Back unwinds the sign-in first, and
                     // only means "the previous step" once nothing is running.

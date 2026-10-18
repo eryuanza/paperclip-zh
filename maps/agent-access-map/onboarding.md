@@ -223,3 +223,25 @@ live acceptance gate. The existing mocked-login browser case also checks the
 same company-scoped active session and saved selection through route reopening
 and a real reload, with one login start and no pending-login hire. These fixture
 assertions do not prove server authorization or live credential use.
+
+## `skip`
+
+Review: `baseline`.
+
+API: `not-applicable` — Skipping closes the browser wizard and clears its local
+draft without creating or changing server resources.
+
+Agent access: `not-applicable` — This is a board UI escape path, not an agent
+operation.
+
+Policy: Skipping grants no provider, company, agent or task permission. Resources
+already created on earlier steps retain their normal domain permissions.
+
+Evidence: `source-only` — [wizard control](../../ui/src/components/OnboardingWizard.tsx)
+and [component test](../../ui/src/components/OnboardingWizard.test.tsx).
+
+Verification: `not-run` — open the provider connection step without credentials,
+choose Skip, and confirm the application remains usable without creating an agent.
+
+Gaps: The dismissal is browser-session UI state; it is not synchronized across
+clients.

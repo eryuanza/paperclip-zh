@@ -1653,14 +1653,37 @@ describe("OnboardingWizard restore-gate (stale localStorage across accounts)", (
       root.unmount();
     });
   });
-  // The close-on-storage-denial case is gone with the control that reached it.
-  // Onboarding is a gate now, not a dialog: there is no X, Escape does not
-  // dismiss it, and nothing in the wizard calls `handleClose`. A test that
-  // clicked Close was asserting a path a customer no longer has.
-  //
-  // The open side of the same hazard is still covered by "renders instead of
-  // throwing when the browser denies storage access" directly above, which is
-  // the half that can still happen.
+  it("lets the customer skip from the model connection step without credentials", async () => {
+    mockDialog.onboardingOptions = { initialStep: 4, companyId: "c1" };
+    mockCompany.companies = [{ id: "c1", name: "Saved Co", issuePrefix: "SC" }];
+    mockCompaniesApi.list.mockResolvedValue(mockCompany.companies);
+
+    const { root, queryClient } = render();
+    await renderWizardView(root, queryClient);
+    await flushReact();
+
+    expect(document.body.textContent).toContain("Connect a model");
+    expect(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)).not.toBeNull();
+    const skip = [...document.body.querySelectorAll("button")].find(
+      (button) => button.getAttribute("aria-label") === "Skip onboarding",
+    );
+    expect(skip, "the model connection step should expose Skip onboarding").not.toBeUndefined();
+
+    await act(async () => {
+      skip!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await flushReact();
+
+    expect(mockDialog.closeOnboarding).toHaveBeenCalledTimes(1);
+    expect(mockDialog.setOnboardingRouteDismissed).toHaveBeenCalledWith(true);
+    expect(window.localStorage.getItem(ONBOARDING_STORAGE_KEY)).toBeNull();
+    expect(mockAgentsApi.hire).not.toHaveBeenCalled();
+
+    await act(async () => {
+      root.unmount();
+    });
+  });
+
   it("leaves the draft untouched when the company query fails and onboarding is closed", async () => {
     // Mounting is safe for the draft precisely because the persist effect is
     // gated on the wizard being open. A closed wizard writes nothing, so the

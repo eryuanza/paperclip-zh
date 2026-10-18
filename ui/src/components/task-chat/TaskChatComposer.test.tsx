@@ -202,6 +202,7 @@ afterEach(() => {
   container.remove();
   Range.prototype.getBoundingClientRect = originalRangeRect;
   window.getSelection()?.removeAllRanges();
+  vi.unstubAllGlobals();
 });
 
 function render(ui: ReactElement) {
@@ -301,6 +302,21 @@ function renderComposer(props: ComponentProps<typeof TaskChatComposer>) {
 }
 
 describe("TaskChatComposer", () => {
+  it("submits with a schema-valid request ID when crypto.randomUUID is unavailable", async () => {
+    vi.stubGlobal("crypto", {});
+    const onAdd = vi.fn().mockResolvedValue(undefined);
+    render(<TaskChatComposer onAdd={onAdd} workMode="standard" />);
+    typeText("Send over plain HTTP");
+
+    flushSync(() => sendButton().click());
+    await flushAsync();
+
+    expect(onAdd).toHaveBeenCalledTimes(1);
+    expect(onAdd.mock.calls[0]?.[4]).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
+  });
+
   it("keeps creation images inline and prevents submission during their upload", async () => {
     let resolveUpload!: (url: string) => void;
     const onImageUpload = vi.fn().mockReturnValue(new Promise<string>((resolve) => { resolveUpload = resolve; }));

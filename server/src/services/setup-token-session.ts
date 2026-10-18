@@ -335,7 +335,11 @@ export async function reapSetupTokenLeases(
   let failed = 0;
   for (const record of records) {
     try {
-      await deps.leases.releaseById(record.leaseId);
+      // Rows created before sandbox-backed login can be terminal without a
+      // provider lease. There is no remote resource to release in that case;
+      // passing an empty ID into the UUID lookup only makes the durable row
+      // retry forever.
+      if (record.leaseId.length > 0) await deps.leases.releaseById(record.leaseId);
       await deps.store.remove({
         sessionId: record.sessionId,
         companyId: record.companyId,

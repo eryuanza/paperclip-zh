@@ -11,6 +11,7 @@ import {
   RETIRED_COMPOSIO_MESSAGE,
 } from "@paperclipai/shared";
 import { AssistantConnectionCard, useAssistantConnections } from "./AssistantConnection";
+import { createUuid } from "@/lib/uuid";
 import { ManagedAiConnectionRow } from "@/components/ai-connections/ManagedAiConnectionDetails";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -1181,7 +1182,7 @@ export function ConnectorCard({
             if (row.aggregatorApp && isInstalled(row)) onManageAggregator?.(row.aggregatorApp, row.upstreamApps?.find(app => app.accounts.length > 0)?.connectionId);
             else if (row.aggregatorApp) onConnectAggregator?.(row.aggregatorApp);
             else if (action.href) onNavigate(row.slug === "agentmail"
-              ? `${action.href}&setupId=${crypto.randomUUID()}` : action.href);
+              ? `${action.href}&setupId=${createUuid()}` : action.href);
           }}
           aria-label={`${action.label} ${row.name}`}
         >

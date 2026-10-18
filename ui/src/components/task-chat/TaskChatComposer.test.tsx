@@ -871,7 +871,8 @@ describe("TaskChatComposer", () => {
   it("uses a compact mobile editor that can grow with the message", () => {
     render(<TaskChatComposer onAdd={vi.fn()} workMode="standard" mobile />);
 
-    expect(editable().dataset.contentClassName).toContain("min-h-(--sz-48px)");
+    expect(editable().dataset.contentClassName).toContain("min-h-(--sz-32px)");
+    expect(editable().dataset.contentClassName).not.toContain("min-h-(--sz-48px)");
     expect(editable().dataset.contentClassName).toContain("max-h-(--sz-28dvh)");
   });
 
